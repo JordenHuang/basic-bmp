@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
-#include <assert.h>
+// #include <assert.h>
 
 #define image_width 512
 #define image_height 512
@@ -48,7 +48,7 @@ typedef struct Bmp{
 }Bmp;
 
 /*
- * Create a pixel array, called buf, or conver a size_t array, called data, to pixel array
+ * Create a pixel array, called buf, or convert a size_t array, called data, to pixel array
  * */
 void bmp_pixel_array(Bmp_pixel **buf, const size_t *data, size_t img_width, size_t img_height, 
                      uint8_t init_red, uint8_t init_green, uint8_t init_blue, uint8_t init_alaph)
@@ -255,6 +255,10 @@ int main()
 
 /*
  * image data is type bmp_pixel
- * TODO: add alpha option (the info part needs some masks when compression_method is 6)
+ *
+ * TODO: add functions:
+ *      1. create_header_and_DIB()
+ *      2. bmp_custom_write(const char *filename, Bmp_header, Bmp_info, Bmp_pixel **pixels)
+ *      3. pixel2uchar_array
  *
  * */

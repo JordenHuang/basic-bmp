@@ -1,12 +1,15 @@
 CC = gcc
 
+# $(CC) -o bmp_write.out bmp_write.c
+# ./bmp_write.out
+# rm bmp_write.out
+
 all:
-	$(CC) -o bmp_write.out bmp_write.c
+	$(CC) -o main.out main.c bmp.h bmp.c
 
 run:
-	./bmp_write.out
-
+	./main.out
 clean:
-	rm bmp_write.out
-
-
+	rm main.out
+show:
+	feh ./my_bmp.bmp
