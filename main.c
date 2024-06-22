@@ -13,9 +13,9 @@ int main()
     int i, j, k;
     for(i=0; i<img_height; ++i){
         for(j=0; j<img_width; ++j){
-        data[i][j][0] = 255;
-        data[i][j][1] = 255;
-        data[i][j][2] = 255;
+        data[i][j][0] = i*j;
+        data[i][j][1] = i*j;
+        data[i][j][2] = i*j;
         //data[i][j][3] = 127;
         }
     }

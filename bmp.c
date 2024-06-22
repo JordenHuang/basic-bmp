@@ -75,11 +75,34 @@ Bmp_pixel *to_pixel_array(unsigned char *data, int width, int height, size_t bpp
     return pixel_arr;
 }
 
+/*
+unsigned char ***to_unsigned_char_array(Bmp_pixel *pixels, int width, int height, size_t bpp)
+{
+    unsigned char ***result = malloc(sizeof(unsigned char**) * height);
+    int i, j, k, bytes_per_pixel = (bpp/8);
+    for(i=0; i<width; ++i){
+        result[i] = malloc(sizeof(unsigned char*) * width);
+        for(j=0; j<height; ++j){
+        result[i][j] = malloc(sizeof(unsigned char) * bytes_per_pixel);
+            // for(k=0; k<width; ++k){
+            // }
+            result[i][j][0] = pixels[i][j].r;
+            result[i][j][1] = pixels[i][j].g;
+            result[i][j][2] = pixels[i][j].b;
+            if(bytes_per_pixel == 4){
+                result[i][j][3] = pixels[i][j].a;
+            }
+        }
+    }
+    return result;
+}
+*/
+
 void bmp_write(const char *file_name, uint8_t bpp, int width, int height, Bmp_pixel *pixels)
 {
     FILE *fptr = fopen(file_name, "wb");
     if (fptr == NULL){
-        fprintf(stderr, "Can't open file [%s]", file_name);
+        fprintf(stderr, "Can't open file to write [%s]", file_name);
         exit(1);
     }
 

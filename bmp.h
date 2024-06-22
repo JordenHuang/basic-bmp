@@ -36,6 +36,11 @@ typedef struct Bmp_pixel{
     unsigned char a;
 }Bmp_pixel;
 
+//typedef struct Bmp{
+//    Bmp_header *header;
+//    Bmp_dib *dib;
+//    Bmp_pixel *pixels;
+//}Bmp;
 
 Bmp_pixel *new_pixel_array(
     int width, int height, size_t bpp,
@@ -43,6 +48,8 @@ Bmp_pixel *new_pixel_array(
 );
 
 Bmp_pixel *to_pixel_array(unsigned char *data, int width, int height, size_t bpp);
+
+unsigned char ***to_unsigned_char_array(Bmp_pixel *pixels, int width, int height, size_t bpp);
 
 void bmp_write(const char *filename, uint8_t bpp, int width, int height, Bmp_pixel *pixels);
 
