@@ -14,6 +14,7 @@ int power(int x)
 
 int main(void)
 {
+#if 0
     unsigned char data[img_height][img_width][bpp/8];
 
     int i, j, k;
@@ -41,10 +42,49 @@ int main(void)
         }
     }
 
-    bmp_write("basic_bmp_test.bmp", bpp, img_width, img_height, (void *)(&data));
+    int r = bmp_write("basic_bmp_test.bmp", img_width, img_height, bpp, (void *)(data));
+    if (r != 0) {
+        printf("[ERROR] Some error happened\n");
+    } else {
+        printf("[INFO] Image created successfully\n");
+    }
+#endif
 
-/*
+    int w_read, h_read, bpp_read;
+    char *pixels;
+    // printf("--------------------\n");
+    // pixels = bmp_load("snail.bmp", &w_read, &h_read, &bpp_read);
+    // free(pixels);
+
+    // printf("--------------------\n");
+    pixels = bmp_load("basic_bmp_test.bmp", &w_read, &h_read, &bpp_read);
+
+    int i, j, k, idx;
+    int channel = bpp_read / 8;
+    for(i=0; i<h_read; ++i){
+        for(j=0; j<w_read*channel; j+=channel){
+            idx = j + i*img_width*channel;
+            k = pixels[idx+0];
+            pixels[idx+0] = pixels[idx+1];
+            pixels[idx+1] = pixels[idx+2];
+            pixels[idx+2] = k;
+        }
+    }
+    int r = bmp_write("basic_bmp_test_rewrite.bmp", w_read, h_read, bpp_read, (void *)(pixels));
+    if (r != 0) {
+        printf("[ERROR] Some error happened\n");
+    } else {
+        printf("[INFO] Image created successfully\n");
+    }
+
+    free(pixels);
+
+    return 0;
+}
+/* The below is my learning history
     void *p = &data;
+    printf("Hello\n");
+    printf("data[0][0][0] is: %u\n\n", ((unsigned char ***)p)[0][0][0]);
 
     int a = 10;
     int arr[2][2] = {{10, 20}, {30, 40}};
@@ -61,6 +101,3 @@ int main(void)
     printf("data[0][0][0] is: %u\n\n", data[0][0][0]);
     printf("data[0][1][0] is: %u\n", *((unsigned char *) p + 3));
 */
-
-    return 0;
-}
