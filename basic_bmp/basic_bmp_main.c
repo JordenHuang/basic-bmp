@@ -1,11 +1,12 @@
-// #include <stdio.h>
+#include <stdio.h>
 
 #define BASIC_BMP_IMPLEMENTATION
 #include "basic_bmp.h"
 
 #define img_width 256
 #define img_height 256
-#define bpp 32
+#define channel 4
+#define bpp (channel*8)
 
 int power(int x)
 {
@@ -14,10 +15,11 @@ int power(int x)
 
 int main(void)
 {
-#if 0
-    unsigned char data[img_height][img_width][bpp/8];
-
     int i, j, k;
+    int idx;
+#if 1
+    unsigned char data[img_height][img_width][channel];
+
     // bg color
     for(i=0; i<img_height; ++i){
         for(j=0; j<img_width; ++j){
@@ -42,7 +44,7 @@ int main(void)
         }
     }
 
-    int r = bmp_write("basic_bmp_test.bmp", img_width, img_height, bpp, (void *)(data));
+    int r = bmp_write("basic_bmp_test.bmp", img_width, img_height, channel, (void *)(data));
     if (r != 0) {
         printf("[ERROR] Some error happened\n");
     } else {
@@ -50,34 +52,34 @@ int main(void)
     }
 #endif
 
-    int w_read, h_read, bpp_read;
-    char *pixels;
+#if 0
+    int w_read, h_read, channel_read;
+    unsigned char *pixels;
     // printf("--------------------\n");
-    // pixels = bmp_load("snail.bmp", &w_read, &h_read, &bpp_read);
+    // pixels = bmp_load("snail.bmp", &w_read, &h_read, &channel_read);
     // free(pixels);
 
     // printf("--------------------\n");
-    pixels = bmp_load("basic_bmp_test.bmp", &w_read, &h_read, &bpp_read);
+    pixels = bmp_load("basic_bmp_test.bmp", &w_read, &h_read, &channel_read);
 
-    int i, j, k, idx;
-    int channel = bpp_read / 8;
     for(i=0; i<h_read; ++i){
-        for(j=0; j<w_read*channel; j+=channel){
-            idx = j + i*img_width*channel;
+        for(j=0; j<w_read*channel_read; j+=channel_read){
+            idx = j + i*img_width*channel_read;
             k = pixels[idx+0];
             pixels[idx+0] = pixels[idx+1];
             pixels[idx+1] = pixels[idx+2];
             pixels[idx+2] = k;
         }
     }
-    int r = bmp_write("basic_bmp_test_rewrite.bmp", w_read, h_read, bpp_read, (void *)(pixels));
-    if (r != 0) {
+    int rr = bmp_write("basic_bmp_test_rewrite.bmp", w_read, h_read, channel_read, (void *)(pixels));
+    if (rr != 0) {
         printf("[ERROR] Some error happened\n");
     } else {
         printf("[INFO] Image created successfully\n");
     }
 
     free(pixels);
+#endif
 
     return 0;
 }

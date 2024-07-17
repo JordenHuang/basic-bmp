@@ -25,9 +25,8 @@
 #define Alpha 3
 
 
-// bpp: bits per pixel
-int bmp_write(const char *filename, int w, int h, int bpp, void *data);
-unsigned char *bmp_load(const char *filename, int *w, int *h, int *bpp);
+int bmp_write(const char *filename, int w, int h, int channel, void *data);
+unsigned char *bmp_load(const char *filename, int *w, int *h, int *channel);
 void bmp_free(void *data);
 
 #endif  // _BASIC_BMP_H_
@@ -39,25 +38,25 @@ void bmp_free(void *data);
 #include <stdio.h>
 #include <stdlib.h>
 
-int bmp_write(const char *filename, int w, int h, int bpp, void *data){
+int bmp_write(const char *filename, int w, int h, int channel, void *data){
     FILE *fptr = fopen(filename, "wb");
     if (fptr == NULL){
         fprintf(stderr, "Can't open file to write [%s]", filename);
         return 1;
     }
 
-    int pixel_data_size = (w + (w % 4)) * h * (bpp/8);
+    int pixel_data_size = (w + (w % 4)) * h * channel;
     int image_size = pixel_data_size;
 
     uint32_t offset;
     uint32_t compression_method;
     size_t dib_size;
-    if(bpp == 24){
+    if(channel == 3){
         offset = 14 + 40;
         compression_method = 0;
         dib_size = 40;
     }
-    else if(bpp == 32){
+    else if(channel == 4){
         offset = 14 + 56;
         compression_method = 6;
         dib_size = 56;
@@ -81,7 +80,7 @@ int bmp_write(const char *filename, int w, int h, int bpp, void *data){
         reverse32(w, 0), reverse32(w, 8), reverse32(w, 16), reverse32(w, 24),
         reverse32(h, 0), reverse32(h, 8), reverse32(h, 16), reverse32(h, 24),
         0x01, 0x00,
-        reverse16(bpp, 0), reverse16(bpp, 8),
+        reverse16(channel*8, 0), reverse16(channel*8, 8),
         reverse32(compression_method, 0), reverse32(compression_method, 8), reverse32(compression_method, 16), reverse32(compression_method, 24),
         reverse32(image_size, 0), reverse32(image_size, 8), reverse32(image_size, 16), reverse32(image_size, 24),
         0x00, 0x00, 0x00, 0x00,
@@ -89,7 +88,7 @@ int bmp_write(const char *filename, int w, int h, int bpp, void *data){
         0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00,
     };
-    if(bpp == 32){
+    if(channel == 4){
         int i;
         for(i=40; i<56; ++i){
             the_dib[i] = 0x00;
@@ -108,14 +107,13 @@ int bmp_write(const char *filename, int w, int h, int bpp, void *data){
     int i, j, k, start, cur=0;
     int padding;
 
-    int bytes_per_pixel = bpp / 8;
     int j_bound;
     unsigned char *start_of_pixel;
     // Positive height stores values from bottom to top, left to right
     for(i=h-1; i>=0; --i){
-        j_bound = w * bytes_per_pixel;
-        start = i * j_bound;  // start = i * w * bytes_per_pixel
-        for(j=0; j<j_bound; j+=bytes_per_pixel){
+        j_bound = w * channel;
+        start = i * j_bound;  // start = i * w * channel
+        for(j=0; j<j_bound; j+=channel){
             start_of_pixel = (unsigned char *)data + (start+j);
             the_pixel_data[cur++] = *(start_of_pixel + Blue );
             the_pixel_data[cur++] = *(start_of_pixel + Green);
@@ -123,11 +121,11 @@ int bmp_write(const char *filename, int w, int h, int bpp, void *data){
             // printf("B: %d\n", *((unsigned char *)data + (start+j)+Blue));
             // printf("G: %d\n", *((unsigned char *)data + (start+j)+Green));
             // printf("R: %d\n", *((unsigned char *)data + (start+j)+Red));
-            if(bpp == 32){
+            if(channel == 4){
                 the_pixel_data[cur++] = *(start_of_pixel + Alpha);
             }
         }
-        //padding = 4 - ((bpp / 8) * w) % 4;
+        //padding = 4 - (channel * w) % 4;
         padding = w % 4;
         if(padding > 0 && padding != 4){
             // printf("pad\n");
@@ -142,7 +140,7 @@ int bmp_write(const char *filename, int w, int h, int bpp, void *data){
     return 0;
 }
 
-unsigned char *bmp_load(const char *filename, int *w, int *h, int *bpp)
+unsigned char *bmp_load(const char *filename, int *w, int *h, int *channel)
 {
     FILE *fptr = fopen(filename, "rb");
     if (fptr == NULL){
@@ -171,36 +169,36 @@ unsigned char *bmp_load(const char *filename, int *w, int *h, int *bpp)
 
     reverse32_as_int(*w, dib, 4);
     reverse32_as_int(*h, dib, 8);
-    reverse16_as_int(*bpp, dib, 14);
+    reverse16_as_int(*channel, dib, 14);
+    *channel = *channel / 8;
 
     // int raw;
     // reverse32_as_int(raw, dib, 20);
-    // printf("%u, %u, %u, %u, %u\n", file_size, offset, *w, *h, *bpp);
+    // printf("%u, %u, %u, %u, %u\n", file_size, offset, *w, *h, *channel);
 
-    int pixel_data_size = ((*w) + ((*w) % 4)) * (*h) * ((*bpp)/8);
+    int pixel_data_size = ((*w) + ((*w) % 4)) * (*h) * (*channel);
     // printf("size: %d, raw: %d\n", pixel_data_size, raw);
 
     // Proccessing the pixel data
     unsigned char the_pixel_data[pixel_data_size];
-    unsigned char *final_data = malloc(sizeof(unsigned char) * ((*w)*(*h)*(*bpp)));
+    unsigned char *final_data = malloc(sizeof(unsigned char) * ((*w)*(*h)*(*channel)));
     fread(the_pixel_data, pixel_data_size, 1, fptr);
 
     int i, j, k, start, cur=0;
     int padding;
 
-    int bytes_per_pixel = (*bpp) / 8;
     int j_bound;
     unsigned char *start_of_pixel;
     // Positive height stores values from bottom to top, left to right
     for(i=(*h)-1; i>=0; --i){
-        j_bound = (*w) * bytes_per_pixel;
-        start = i * j_bound;  // start = i * w * bytes_per_pixel
-        for(j=0; j<j_bound; j+=bytes_per_pixel){
+        j_bound = (*w) * (*channel);
+        start = i * j_bound;  // start = i * w * channel
+        for(j=0; j<j_bound; j+=(*channel)){
             start_of_pixel = final_data + (start+j);
             *(start_of_pixel + Blue ) = the_pixel_data[cur++];
             *(start_of_pixel + Green) = the_pixel_data[cur++];
             *(start_of_pixel + Red  ) = the_pixel_data[cur++];
-            if((*bpp) == 32){
+            if((*channel) == 4){
                 *(start_of_pixel + Alpha) = the_pixel_data[cur++];
             }
         }
